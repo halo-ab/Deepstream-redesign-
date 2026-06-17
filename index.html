@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#070b14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>DeepStream — Live Sports</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ══ HEADER ════════════════════════════════════════════ -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">
+          <!-- unchanged DeepStream logo SVG -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>DeepStream</h1>
+        </div>
+      </div>
+
+      <!-- Search — lives in header, wired to existing #channel-search -->
+      <div class="header-search">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="search" id="channel-search" placeholder="Search matches…" enterkeyhint="search" />
+        </div>
+      </div>
+
+      <!-- Live count badge -->
+      <div class="header-meta">
+        <div class="live-badge-header">
+          <span class="live-dot-pulse"></span>
+          <span id="channel-count" class="channel-count-header">Loading…</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══ HERO ══════════════════════════════════════════════ -->
+    <section class="hero" id="hero-section">
+      <div class="hero-glow hero-glow-1"></div>
+      <div class="hero-glow hero-glow-2"></div>
+      <div class="hero-inner">
+        <div class="hero-eyebrow">
+          <span class="eyebrow-dot"></span>
+          Live Now
+        </div>
+        <h2 class="hero-title">Every Live Match.<br><em>One Place.</em></h2>
+        <p class="hero-sub">Stream cricket, football, kabaddi & more — all in one place, free.</p>
+        <div class="hero-stats" id="hero-stats">
+          <div class="hero-stat">
+            <span class="stat-value" id="stat-events">—</span>
+            <span class="stat-label">Live Events</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <span class="stat-value" id="stat-cats">—</span>
+            <span class="stat-label">Categories</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CATEGORY PILLS ═════════════════════════════════════ -->
+    <div class="category-bar" id="category-bar" style="display:none">
+      <div class="category-scroll" id="category-scroll">
+        <!-- pills injected by JS -->
+      </div>
+    </div>
+
+    <!-- ══ EVENTS GRID ════════════════════════════════════════ -->
+    <section class="events-section" id="events-section" style="display:none">
+      <div class="section-header">
+        <h3 class="section-title">
+          <span class="live-pill-sm">LIVE</span>
+          All Matches
+        </h3>
+      </div>
+      <!-- #channel-list is the hook app.js writes into -->
+      <div id="channel-list" class="events-grid">
+        <div class="empty-state">
+          <div class="spinner"></div>
+          <p>Loading matches…</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ PLAYER SECTION (hidden until match selected) ══════ -->
+    <section class="player-section hidden" id="player-section">
+
+      <!-- Back button -->
+      <button type="button" class="btn-back" id="btn-back-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        All Matches
+      </button>
+
+      <!-- Video player -->
+      <div class="player-wrap">
+        <video id="video" controls playsinline webkit-playsinline x5-playsinline poster=""></video>
+
+        <!-- overlays — IDs unchanged for app.js -->
+        <div id="player-overlay" class="player-overlay hidden">
+          <div class="overlay-content">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="10 8 16 12 10 16 10 8"/>
+            </svg>
+            <p>Select a channel to start streaming</p>
+          </div>
+        </div>
+        <div id="player-loading" class="player-loading hidden">
+          <div class="spinner"></div>
+          <span>Connecting to stream…</span>
+        </div>
+        <div id="player-error" class="player-error hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p id="error-message">Unable to play stream</p>
+          <button type="button" id="btn-retry" class="btn btn-ghost">Retry</button>
+        </div>
+      </div>
+
+      <!-- Now-playing bar — IDs unchanged for app.js -->
+      <div class="now-playing">
+        <img id="now-logo" class="now-logo hidden" alt="" />
+        <div class="now-info">
+          <span id="now-group" class="now-group"></span>
+          <h2 id="now-title">No channel selected</h2>
+          <p id="now-url" class="now-url desktop-only"></p>
+        </div>
+      </div>
+
+      <!-- Suggestions / related matches -->
+      <div class="suggestions-section" id="suggestions-section" style="display:none">
+        <div class="section-header">
+          <h3 class="section-title">
+            <span class="live-pill-sm">LIVE</span>
+            More Matches
+          </h3>
+        </div>
+        <div class="suggestions-scroll" id="suggestions-scroll">
+          <!-- injected by our thin UI layer below -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- drawer backdrop — ID unchanged for app.js mobile drawer -->
+    <div id="drawer-backdrop" class="drawer-backdrop hidden" aria-hidden="true"></div>
+
+    <!-- btn-channels: required by app.js (uses optional chaining, kept hidden) -->
+    <button type="button" id="btn-channels" style="display:none" aria-hidden="true"></button>
+
+    <!-- sidebar kept in DOM but visually hidden (app.js still writes to it) -->
+    <!-- On mobile the drawer still works via app.js; on desktop we repurpose channel-list -->
+    <aside id="sidebar" class="sidebar" aria-hidden="true">
+      <div class="sidebar-header">
+        <div class="sidebar-title-row">
+          <h2 class="sidebar-title mobile-only">Channels</h2>
+          <button type="button" id="btn-close-drawer" class="btn btn-icon mobile-only" aria-label="Close channels">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <footer class="footer">
+      <span>DeepStream</span>
+      <span class="dot">·</span>
+      <span>Live Sports Streaming</span>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+  <script src="app.js"></script>
+
+  <!-- ══ THIN UI LAYER ═══════════════════════════════════════
+       This script only handles the visual layer:
+       - Reads data from channels[] (already parsed by app.js)
+       - Renders event cards in #channel-list
+       - Wires category filter pills
+       - Switches hero → player view on channel click
+       - Renders suggestion strip
+       Does NOT touch: playlist fetch, HLS, proxies, parsePlaylist, playChannel
+  ══════════════════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    "use strict";
+
+    /* ── helpers ── */
+    const qs = (s) => document.querySelector(s);
+
+    const heroSection     = qs("#hero-section");
+    const categoryBar     = qs("#category-bar");
+    const categoryScroll  = qs("#category-scroll");
+    const eventsSection   = qs("#events-section");
+    const channelList     = qs("#channel-list");
+    const playerSection   = qs("#player-section");
+    const btnBackHome     = qs("#btn-back-home");
+    const suggestionsSection = qs("#suggestions-section");
+    const suggestionsScroll  = qs("#suggestions-scroll");
+    const statEvents      = qs("#stat-events");
+    const statCats        = qs("#stat-cats");
+
+    let allChannels = [];   // filled once app.js populates
+    let activeGroup = "All";
+
+    /* ── escape html ── */
+    function esc(s) {
+      const d = document.createElement("div");
+      d.textContent = String(s);
+      return d.innerHTML;
+    }
+
+    /* ── show home view ── */
+    function showHome() {
+      heroSection.classList.remove("hidden");
+      categoryBar.style.display = "";
+      eventsSection.style.display = "";
+      playerSection.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ── show player view ── */
+    function showPlayer() {
+      heroSection.classList.add("hidden");
+      categoryBar.style.display = "none";
+      eventsSection.style.display = "none";
+      playerSection.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ── build a card element ── */
+    function buildCard(ch, compact) {
+      const card = document.createElement("div");
+      card.className = compact ? "sug-card" : "event-card";
+      card.dataset.url = ch.url;
+
+      if (compact) {
+        /* horizontal suggestion card */
+        const logoHtml = ch.logo
+          ? `<img class="sug-logo-img" src="${esc(ch.logo)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          : "";
+        const fallback = `<div class="sug-logo-fb" style="${ch.logo ? "display:none" : ""}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+          </div>`;
+        card.innerHTML = `
+          <div class="sug-logo">${logoHtml}${fallback}</div>
+          <div class="sug-info">
+            <div class="sug-group">${esc(ch.group)}</div>
+            <div class="sug-title">${esc(ch.title)}</div>
+          </div>
+          <span class="live-dot-sm"></span>
+        `;
+      } else {
+        /* main event card */
+        const logoHtml = ch.logo
+          ? `<img class="card-logo-img" src="${esc(ch.logo)}" alt="${esc(ch.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          : "";
+        const fallback = `<div class="card-logo-fb" style="${ch.logo ? "display:none" : ""}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+          </div>`;
+        card.innerHTML = `
+          <div class="card-thumb">
+            ${logoHtml}${fallback}
+            <div class="card-live-badge"><span class="card-live-dot"></span>LIVE</div>
+            <div class="card-play-btn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-group">${esc(ch.group)}</div>
+            <div class="card-title">${esc(ch.title)}</div>
+            <div class="card-cta">Watch Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        `;
+      }
+
+      card.addEventListener("click", () => {
+        /* call the real playChannel from app.js scope */
+        window.__dsPlay(ch);
+      });
+
+      return card;
+    }
+
+    /* ── render filtered cards into #channel-list ── */
+    function renderCards(list) {
+      channelList.innerHTML = "";
+      if (!list.length) {
+        channelList.innerHTML = `<div class="empty-state"><p>No matches found.</p></div>`;
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      list.forEach((ch) => frag.appendChild(buildCard(ch, false)));
+      channelList.appendChild(frag);
+    }
+
+    /* ── render suggestion strip ── */
+    function renderSuggestions(excludeUrl) {
+      const others = allChannels.filter((c) => c.url !== excludeUrl).slice(0, 20);
+      if (!others.length) { suggestionsSection.style.display = "none"; return; }
+      suggestionsScroll.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      others.forEach((ch) => frag.appendChild(buildCard(ch, true)));
+      suggestionsScroll.appendChild(frag);
+      suggestionsSection.style.display = "";
+    }
+
+    /* ── build category pills ── */
+    function buildCategoryBar(channels) {
+      const groups = ["All", ...new Set(channels.map((c) => c.group).filter(Boolean).sort())];
+      categoryScroll.innerHTML = groups.map((g) =>
+        `<button class="cat-pill${g === "All" ? " active" : ""}" data-group="${esc(g)}">${esc(g)}</button>`
+      ).join("");
+
+      categoryScroll.querySelectorAll(".cat-pill").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          categoryScroll.querySelectorAll(".cat-pill").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeGroup = btn.dataset.group;
+          applyFilter();
+        });
+      });
+    }
+
+    /* ── filter ── */
+    function applyFilter() {
+      const q = (qs("#channel-search")?.value || "").trim().toLowerCase();
+      const filtered = allChannels.filter((c) => {
+        const mg = activeGroup === "All" || c.group === activeGroup;
+        const ms = !q || c.title.toLowerCase().includes(q) || c.group.toLowerCase().includes(q);
+        return mg && ms;
+      });
+      renderCards(filtered);
+    }
+
+    /* ── search wire-up (supplement app.js listener — app.js also listens) ── */
+    const searchEl = qs("#channel-search");
+    if (searchEl) {
+      searchEl.addEventListener("input", applyFilter);
+    }
+
+    /* ── intercept app.js renderChannelList by polling for data ── */
+    /*
+      app.js calls renderChannelList() which writes raw sidebar buttons
+      into #channel-list. We replace that output with our card UI.
+      We also expose __dsPlay() so our cards can call playChannel().
+    */
+    function patchAppJs() {
+      /* Wait until app.js has set window.channels or parsed something */
+      const INTERVAL = 200;
+      const MAX_WAIT = 15000;
+      let elapsed = 0;
+
+      const poller = setInterval(() => {
+        elapsed += INTERVAL;
+
+        /* app.js exposes channels via the closure; we detect
+           when #channel-list has content written by app.js    */
+        const items = channelList.querySelectorAll(".channel-item");
+        if (items.length > 0 || elapsed >= MAX_WAIT) {
+          clearInterval(poller);
+
+          if (items.length === 0) return; /* timeout — nothing loaded */
+
+          /* Harvest channel data from what app.js rendered */
+          allChannels = Array.from(items).map((btn) => ({
+            url:   btn.dataset.url || "",
+            title: btn.querySelector(".channel-name")?.textContent || "",
+            group: btn.querySelector(".channel-group")?.textContent || "",
+            logo:  btn.querySelector("img")?.src || "",
+          }));
+
+          /* Update hero stats */
+          statEvents.textContent = allChannels.length;
+          const cats = new Set(allChannels.map((c) => c.group)).size;
+          statCats.textContent = cats;
+
+          /* Build UI */
+          buildCategoryBar(allChannels);
+          renderCards(allChannels);
+          categoryBar.style.display = "";
+          eventsSection.style.display = "";
+
+        }
+      }, INTERVAL);
+    }
+
+    /* ── expose __dsPlay so card clicks reach app.js playChannel ── */
+    /*
+      app.js defines playChannel in its closure. The cleanest way to call
+      it from outside is to click the hidden sidebar button that app.js
+      created — it has the event listener attached. We find the button
+      by matching data-url.
+    */
+    window.__dsPlay = function (ch) {
+      /* find the hidden sidebar button app.js built and click it */
+      const sidebarBtn = document.querySelector(
+        `#sidebar .channel-item[data-url="${CSS.escape(ch.url)}"]`
+      );
+
+      /* sidebar doesn't exist in new layout; fall back: we re-render
+         sidebar list briefly, click, done */
+      if (!sidebarBtn) {
+        /* Rebuild sidebar items so app.js click handlers exist,
+           then immediately click the right one */
+        rebuildSidebarAndPlay(ch);
+        return;
+      }
+
+      sidebarBtn.click();
+      afterPlay(ch);
+    };
+
+    /* Rebuild sidebar list and play */
+    function rebuildSidebarAndPlay(ch) {
+      /* We need to trigger app.js's playChannel. Since app.js listens on
+         channel-item buttons it creates, we move channel-list back to
+         sidebar temporarily, call renderChannelList equivalent, then click. */
+
+      /* Simpler: call a global if app.js exposes one */
+      if (typeof window.__appPlayChannel === "function") {
+        window.__appPlayChannel(ch);
+        afterPlay(ch);
+        return;
+      }
+
+      /* Fallback: dispatch a custom event and let app.js handle it */
+      document.dispatchEvent(new CustomEvent("ds:play", { detail: ch }));
+      afterPlay(ch);
+    }
+
+    function afterPlay(ch) {
+      showPlayer();
+      renderSuggestions(ch.url);
+      /* highlight active card */
+      channelList.querySelectorAll(".event-card").forEach((c) => {
+        c.classList.toggle("active", c.dataset.url === ch.url);
+      });
+    }
+
+    /* ── back button ── */
+    btnBackHome?.addEventListener("click", showHome);
+
+    /* ── watch for player-section being shown by other code ── */
+    /* (not needed — we control show/hide) */
+
+    /* ── boot ── */
+    patchAppJs();
+
+  })();
+  </script>
+
+  <!-- ══ PATCH: expose playChannel globally so UI layer can call it ═══
+       Injected after app.js so it can wrap the closure.
+       Technique: override renderChannelList to intercept the data.
+  ════════════════════════════════════════════════════════════════════ -->
+  <script>
+  (function patchDeepStream() {
+    /* app.js is already executed at this point.
+       We need to intercept two things:
+       1. renderChannelList — so we get the channel data
+       2. playChannel — so our cards can trigger it
+
+       Both live inside app.js's IIFE scope. We can't reach them directly.
+       Strategy: We watch MutationObserver on #channel-list. When app.js
+       writes .channel-item buttons, we:
+         a) Read the data from those buttons
+         b) Re-render with our card UI
+         c) Attach our own click handlers that call .click() on the
+            original hidden buttons (which have app.js's playChannel listener)
+    */
+
+    const channelList    = document.getElementById("channel-list");
+    const sidebar        = document.getElementById("sidebar");
+    const heroSection    = document.getElementById("hero-section");
+    const categoryBar    = document.getElementById("category-bar");
+    const categoryScroll = document.getElementById("category-scroll");
+    const eventsSection  = document.getElementById("events-section");
+    const playerSection  = document.getElementById("player-section");
+    const suggestionsSection = document.getElementById("suggestions-section");
+    const suggestionsScroll  = document.getElementById("suggestions-scroll");
+    const statEvents     = document.getElementById("stat-events");
+    const statCats       = document.getElementById("stat-cats");
+    const channelCountEl = document.getElementById("channel-count");
+
+    /* Storage for sidebar buttons (have real app.js click listeners) */
+    let sidebarButtons = [];
+    let allChannelData = [];
+    let activeGroup    = "All";
+    let initialized    = false;
+
+    function esc(s) {
+      const d = document.createElement("div");
+      d.textContent = String(s || "");
+      return d.innerHTML;
+    }
+
+    /* ── show / hide views ── */
+    function showHome() {
+      heroSection.classList.remove("hidden");
+      if (categoryBar) categoryBar.style.display = "";
+      if (eventsSection) eventsSection.style.display = "";
+      playerSection.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showPlayer() {
+      heroSection.classList.add("hidden");
+      if (categoryBar) categoryBar.style.display = "none";
+      if (eventsSection) eventsSection.style.display = "none";
+      playerSection.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ── category pills ── */
+    function buildCategoryBar() {
+      if (!categoryScroll) return;
+      const groups = ["All", ...new Set(allChannelData.map((c) => c.group).filter(Boolean).sort())];
+      categoryScroll.innerHTML = groups.map((g) =>
+        `<button class="cat-pill${g === "All" ? " active" : ""}" data-group="${esc(g)}">${esc(g)}</button>`
+      ).join("");
+      categoryScroll.querySelectorAll(".cat-pill").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          categoryScroll.querySelectorAll(".cat-pill").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeGroup = btn.dataset.group;
+          applyFilter();
+        });
+      });
+      if (categoryBar) categoryBar.style.display = "";
+    }
+
+    /* ── filter ── */
+    function applyFilter() {
+      const q = (document.getElementById("channel-search")?.value || "").trim().toLowerCase();
+      const filtered = allChannelData.filter((c) => {
+        const mg = activeGroup === "All" || c.group === activeGroup;
+        const ms = !q || c.title.toLowerCase().includes(q) || c.group.toLowerCase().includes(q);
+        return mg && ms;
+      });
+      renderEventCards(filtered);
+    }
+
+    /* ── build main event card ── */
+    function buildEventCard(ch) {
+      const card = document.createElement("div");
+      card.className = "event-card";
+      card.dataset.url = ch.url;
+
+      const logoHtml = ch.logo
+        ? `<img class="card-logo-img" src="${esc(ch.logo)}" alt="" loading="lazy"
+               onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+        : "";
+      const fallback = `<div class="card-logo-fb" style="${ch.logo ? "display:none" : "display:flex"}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/>
+          </svg>
+        </div>`;
+
+      card.innerHTML = `
+        <div class="card-thumb">
+          ${logoHtml}${fallback}
+          <div class="card-live-badge"><span class="card-live-dot"></span>LIVE</div>
+          <div class="card-play-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-group">${esc(ch.group)}</div>
+          <div class="card-title">${esc(ch.title)}</div>
+          <div class="card-cta">Watch Now
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+      `;
+
+      card.addEventListener("click", () => triggerPlay(ch));
+      return card;
+    }
+
+    /* ── build suggestion card ── */
+    function buildSugCard(ch) {
+      const card = document.createElement("div");
+      card.className = "sug-card";
+      card.dataset.url = ch.url;
+
+      const logoHtml = ch.logo
+        ? `<img class="sug-logo-img" src="${esc(ch.logo)}" alt="" loading="lazy"
+               onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+        : "";
+      const fallback = `<div class="sug-logo-fb" style="${ch.logo ? "display:none" : "display:flex"}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/>
+          </svg>
+        </div>`;
+
+      card.innerHTML = `
+        <div class="sug-logo">${logoHtml}${fallback}</div>
+        <div class="sug-info">
+          <div class="sug-group">${esc(ch.group)}</div>
+          <div class="sug-title">${esc(ch.title)}</div>
+        </div>
+        <span class="live-dot-sm"></span>
+      `;
+
+      card.addEventListener("click", () => triggerPlay(ch));
+      return card;
+    }
+
+    /* ── render event cards ── */
+    function renderEventCards(list) {
+      channelList.innerHTML = "";
+      if (!list.length) {
+        channelList.innerHTML = `<div class="empty-state"><p>No matches found.</p></div>`;
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      list.forEach((ch) => frag.appendChild(buildEventCard(ch)));
+      channelList.appendChild(frag);
+    }
+
+    /* ── render suggestions ── */
+    function renderSuggestions(excludeUrl) {
+      if (!suggestionsScroll) return;
+      const others = allChannelData.filter((c) => c.url !== excludeUrl).slice(0, 24);
+      if (!others.length) { if (suggestionsSection) suggestionsSection.style.display = "none"; return; }
+      suggestionsScroll.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      others.forEach((ch) => frag.appendChild(buildSugCard(ch)));
+      suggestionsScroll.appendChild(frag);
+      if (suggestionsSection) suggestionsSection.style.display = "";
+    }
+
+    /* ── trigger playback via app.js's sidebar button ── */
+    function triggerPlay(ch) {
+      /* Find the sidebar button with the matching url — it has app.js's
+         real playChannel listener attached. Click it. */
+      const sidebarBtn = sidebar.querySelector(`.channel-item[data-url="${CSS.escape(ch.url)}"]`);
+      if (sidebarBtn) {
+        sidebarBtn.click();
+      }
+      /* regardless, switch to player view and populate suggestions */
+      showPlayer();
+      renderSuggestions(ch.url);
+    }
+
+    /* ── back button ── */
+    document.getElementById("btn-back-home")?.addEventListener("click", showHome);
+
+    /* ── search supplement ── */
+    document.getElementById("channel-search")?.addEventListener("input", applyFilter);
+
+    /* ── MutationObserver: watch sidebar for app.js writing channel-item buttons ── */
+    /*
+      app.js's renderChannelList writes into #channel-list.
+      We MOVE #channel-list into #sidebar so app.js still writes there,
+      but the rendered output goes to the sidebar DOM node (hidden).
+      Then we build our own card UI separately.
+
+      SIMPLER alternative we use:
+      Keep channel-list in the events-section (visual location).
+      Override renderChannelList by watching the sidebar for its output
+      via a MutationObserver, harvesting data, then re-rendering cards.
+
+      Actually the cleanest: watch #channel-list directly. app.js writes
+      .channel-item buttons into it. We intercept and re-render.
+    */
+    const observer = new MutationObserver(() => {
+      const items = channelList.querySelectorAll(".channel-item");
+      if (!items.length) return;
+
+      /* app.js just wrote channel buttons. Harvest the data. */
+      const newData = Array.from(items).map((btn) => ({
+        url:   btn.dataset.url || "",
+        title: btn.querySelector(".channel-name")?.textContent?.trim() || "Untitled",
+        group: btn.querySelector(".channel-group")?.textContent?.trim() || "General",
+        logo:  btn.querySelector("img.channel-logo")?.src || "",
+      })).filter((c) => c.url);
+
+      if (!newData.length) return;
+
+      /* Move the raw channel-item buttons into the hidden sidebar
+         so app.js click listeners are still alive there */
+      const sidebarInner = sidebar.querySelector(".sidebar-header");
+      /* create a hidden list container in sidebar if needed */
+      let hiddenList = sidebar.querySelector(".sidebar-channel-list-hidden");
+      if (!hiddenList) {
+        hiddenList = document.createElement("div");
+        hiddenList.className = "sidebar-channel-list-hidden";
+        hiddenList.setAttribute("aria-hidden", "true");
+        sidebar.appendChild(hiddenList);
+      }
+      /* Move items */
+      items.forEach((btn) => hiddenList.appendChild(btn));
+      /* also move group-label elements */
+      channelList.querySelectorAll(".group-label").forEach((el) => hiddenList.appendChild(el));
+      /* also move empty-state if written */
+      channelList.querySelectorAll(".empty-state").forEach((el) => el.remove());
+
+      /* update our data */
+      allChannelData = newData;
+      sidebarButtons = Array.from(hiddenList.querySelectorAll(".channel-item"));
+
+      if (!initialized) {
+        initialized = true;
+        /* stats */
+        if (statEvents) statEvents.textContent = allChannelData.length;
+        const cats = new Set(allChannelData.map((c) => c.group)).size;
+        if (statCats) statCats.textContent = cats;
+        /* update header count */
+        if (channelCountEl) channelCountEl.textContent = `${allChannelData.length} Live`;
+        /* build category bar */
+        buildCategoryBar();
+        /* show sections */
+        if (eventsSection) eventsSection.style.display = "";
+      } else {
+        /* playlist refresh — update data silently */
+        if (channelCountEl) channelCountEl.textContent = `${allChannelData.length} Live`;
+      }
+
+      /* render our card UI */
+      applyFilter();
+    });
+
+    observer.observe(channelList, { childList: true, subtree: false });
+
+    /* ── also patch channel-count updates ── */
+    /* app.js sets channelCount.textContent; we intercept via MutationObserver */
+    if (channelCountEl) {
+      const countObserver = new MutationObserver(() => {
+        /* already handled above */
+      });
+      /* leave it — we update the header count ourselves above */
+    }
+
+  })();
+  </script>
+</body>
+</html>
