@@ -27,10 +27,10 @@ const PLAYLIST_SOURCES = [
   // ── ADD MORE SOURCES BELOW ───────────────────────────────────────
   // Copy-paste any block and fill in name + url:
 
-  // {
-  //   name: "My Sports Playlist",
-  //   url: "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/sports.m3u",
-  // },
+   {
+     name: "My Sports Playlist",
+    url: "https://github.com/halo-ab/Matches-playlist-/blob/main/Playlist.m3u",
+  },
 
   // {
   //   name: "Formula 1 Streams",
