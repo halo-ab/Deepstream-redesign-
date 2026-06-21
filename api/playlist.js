@@ -21,7 +21,7 @@ const PLAYLIST_SOURCES = [
   // ── SOURCE 1 ────────────────────────────────────────────────────
   {
     name: "FanCode Live Events",
-    url: "https://github.com/halo-ab/Matches-playlist-/blob/main/Playlist.m3u",
+    url: "https://raw.githubusercontent.com/halo-ab/Matches-playlist-/refs/heads/main/Playlist.m3u",
   },
 
   // ── ADD MORE SOURCES BELOW ───────────────────────────────────────
