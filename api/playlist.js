@@ -21,7 +21,7 @@ const PLAYLIST_SOURCES = [
   // ── SOURCE 1 ────────────────────────────────────────────────────
   {
     name: "FanCode Live Events",
-    url: "https://raw.githubusercontent.com/halo-ab/Matches-playlist-/refs/heads/main/Playlist.m3u",
+    url: "https://raw.githubusercontent.com/drmlive/fancode-live-events/refs/heads/main/fancode.m3u",
   },
 
   // ── ADD MORE SOURCES BELOW ───────────────────────────────────────
@@ -29,7 +29,7 @@ const PLAYLIST_SOURCES = [
 
    {
      name: "My Sports Playlist",
-    url: "https://github.com/halo-ab/Matches-playlist-/blob/main/Playlist.m3u",
+    url: "https://raw.githubusercontent.com/halo-ab/Matches-playlist-/refs/heads/main/Playlist.m3u",
   },
 
   // {
