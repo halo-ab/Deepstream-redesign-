@@ -1,6 +1,0 @@
-{
-  "name": "deepstream",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Fancode live HLS streaming player"
-}
