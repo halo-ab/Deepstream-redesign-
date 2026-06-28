@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "functions": {
+    "api/hlsnode.js": {
+      "regions": ["bom1"]
+    },
+    "api/dash.js": {
+      "regions": ["bom1"],
+      "maxDuration": 30
+    },
+    "api/playlist.js": {
+      "regions": ["bom1"]
+    }
+  }
+}
