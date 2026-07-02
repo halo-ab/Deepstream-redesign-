@@ -21,7 +21,7 @@ const PLAYLIST_SOURCES = [
   // ── SOURCE 1 ────────────────────────────────────────────────────
   {
     name: "FanCode Live Events",
-    url: "https://raw.githubusercontent.com/doctor-8trange/zyphx8/refs/heads/main/data/fancode.m3u",
+    url: "https://raw.githubusercontent.com/sm-monirulislam/FanCode-Auto-Update-Playlist/refs/heads/main/fancode_in.m3u",
   },
 
   // ── SOURCE 2 ────────────────────────────────────────────────────
