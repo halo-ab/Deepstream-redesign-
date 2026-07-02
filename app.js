@@ -32,7 +32,7 @@ let networkRetries = 0;
 let dashPlayer = null;
 
 const PLAYLIST_URL =
-  "https://raw.githubusercontent.com/doctor-8trange/zyphx8/refs/heads/main/data/fancode.m3u";
+  "https://raw.githubusercontent.com/sm-monirulislam/FanCode-Auto-Update-Playlist/refs/heads/main/fancode_in.m3u";
 const PLAYLIST_REFRESH_MS = 5 * 60 * 1000;
 
 /**
